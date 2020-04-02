@@ -1,0 +1,44 @@
+[
+    {
+        "definitions" : [
+            {
+                "column" : 13,
+                "file" : "C:/Users/jpuigsal/Documents/Cositas/ConsReg/src/Func.c",
+                "kind" : 6,
+                "line" : 17,
+                "name" : "partrans2(int, double *, double *)",
+                "parent_name" : "",
+                "usr" : "c:Func.c@F@partrans2#I#*d#S0_#"
+            },
+            {
+                "column" : 6,
+                "file" : "C:/Users/jpuigsal/Documents/Cositas/ConsReg/src/Func.c",
+                "kind" : 6,
+                "line" : 36,
+                "name" : "ConsReg_transPars2(SEXP, SEXP)",
+                "parent_name" : "",
+                "usr" : "c:@F@ConsReg_transPars2#*$@S@SEXPREC#S0_#"
+            },
+            {
+                "column" : 3,
+                "file" : "C:/Users/jpuigsal/Documents/Cositas/ConsReg/src/Func.c",
+                "kind" : 6,
+                "line" : 77,
+                "name" : "ConsReg_Estimation(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP)",
+                "parent_name" : "",
+                "usr" : "c:@F@ConsReg_Estimation#*$@S@SEXPREC#S0_#S0_#S0_#S0_#S0_#"
+            },
+            {
+                "column" : 3,
+                "file" : "C:/Users/jpuigsal/Documents/Cositas/ConsReg/src/Func.c",
+                "kind" : 6,
+                "line" : 128,
+                "name" : "ConsReg_Matrix(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP)",
+                "parent_name" : "",
+                "usr" : "c:@F@ConsReg_Matrix#*$@S@SEXPREC#S0_#S0_#S0_#S0_#S0_#S0_#S0_#S0_#"
+            }
+        ],
+        "file" : "C:/Users/jpuigsal/Documents/Cositas/ConsReg/src/Func.c",
+        "file_last_write" : 1585819599.000000
+    }
+]

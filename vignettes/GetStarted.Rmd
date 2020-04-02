@@ -1,0 +1,342 @@
+---
+title: "Using ConsReg Package"
+author: "Josep Puig"
+date: "`r Sys.Date()`"
+output: 
+  rmarkdown::html_vignette:
+    toc: true
+    df_print: kable
+params:
+  EVAL: !r identical(Sys.getenv("NOT_CRAN"), "true")
+vignette: >
+  %\VignetteIndexEntry{Using ConsReg Package}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+  
+<style type="text/css">
+.kable-table table {
+  margin-left: 0;
+}
+img {
+  border: none;
+}
+</style>
+  
+```{r chunk_options, include=FALSE}
+knitr::opts_chunk$set(
+  fig.width = 6.5,
+  fig.height = 3,
+  eval = if (isTRUE(exists("params"))) params$EVAL else FALSE
+)
+if (capabilities("cairo")) {
+  knitr::opts_chunk$set(
+    dev.args = list(png = list(type = "cairo"))
+  )
+}
+```
+
+## Introduction
+  
+One of my main problems in my day-to-day work developing predictive models is in the logic of the model. When I talk about the model logic I refer that: the coefficients of the predictive variables make sense from an economic reasoning, the weight of each variable introduced is reasonable, the variables requested by business department have been incorporated,... and of course the error of the model is low!
+
+Imagine the situation, you build a model with Decision Trees for the prediction of credit default: you get low train and test errors, you detect the variables that have more influence and these are from an economic logic point of view (income, savings, loan information, educational level,...), you prepare a shiny app so that the client can "play" with the model and can introduce some random values to the predictive variables,... everything is perfect until after a few days he calls you saying that he doesn't understand why the model returns a much higher probability of default for a person with a doctorate degree than a person with a lower level of studies. 
+
+It could also happen, for example, that by slightly modifying the income level, the probability changes considerably, while by modifying the savings, it changes practically nothing.
+
+These facts can be influenced by how the data are generated (risk policies followed by the company), for not having enought observations or by the structure of the data itself.
+
+The methods that are usually used to correct are, for example, elimination directly of variables from the model that do not have the desired effect, processing of variables (combination of varialbes), regularization, Bayesian methods incorporating priors in the parameters (complicated, if you are not a Bayesian expert), ... However, some of these methods do not solve your problem or you spend lots of time try to solve that.
+
+Even if the model error is low, for a person not used to using predictive models, it is really difficult to trust a model that he does not understand and that the results it proposes are illogical. Sometimes, it can be convenient to sacrifice some error if you win in logic. And if the model is logical, it is more likely to generalize well in out-of-sample.
+
+It is in the world of time series, in my experience, where this problem is most accentuated. 
+
+**ConsReg** is a collection of functions, that I have been writting and that I've put them together in this package, in order to estimate models with a priori constraints. 
+
+It has two main functions:
+
+- ConsReg: to estimate linear and logistic regression models
+- ConsRegArima: to estimate regression models with errors that follow an Arma process.
+
+For the estimation of the parameters you can use functions from several specialized optimization packages. Even with MCMC simulation method optimization. 
+I think the package is quite simple to use and intuitive.
+It is my first package I write in R and it is the first version of the package, so there will be many improvements! Please contact to me. 
+
+## Start
+
+This first vignette is a first presentation of the package.
+
+For the first example, I will use the fake_data dataset. This is a fake dataset only to show the functionalities of this package
+
+```{r, warning=FALSE, message=FALSE}
+require(ConsReg)
+require(ggplot2)
+require(data.table)
+```
+
+
+## ConsReg
+
+```{r}
+data("fake_data")
+```
+
+Let's start with a simple linear regression:
+```{r}
+fit1 = ConsReg(formula = y~x1+x2+x3+ I(x3^2) + x4, family = 'gaussian',
+                     optimizer = 'solnp',
+                     data = fake_data)
+fit1$coefficients
+coef(lm(y~x1+x2+x3+I(x3^2) + x4, data = fake_data))
+
+```
+
+The use of the function ConsReg is very simple and similar to glm/lm function:
+
+- The formula term
+- family: a description of the error distribution: "gaussian" (linear regression), "binomial" for logistic regression or "poisson" (poisson regression)
+- optimizer: several optimizer functions from several packages are implmented.
+- data: data to be used
+
+Possible optimizers are:
+
+- solnp (default): Nonlinear optimization using augmented Lagrange method
+- gosolnp: Random Initialization and Multiple Restarts of the solnp solver
+- optim: General-purpose Optimization (stats package)
+- dfoptim: Hooke-Jeeves derivative-free minimization algorithm
+- nloptr: nloptr is an R interface to NLopt
+- DEoptim: Differential Evolution Optimization
+- mcmc: (from FME:ModMCMC) Constrained Markov Chain Monte Carlo
+- MCMCmetrop: random walk Metropolis algorithm
+- adaptMCMC:  robust adaptive Metropolis sampler
+- GA: Genetic algorithms 
+- GenSA: Generalized Simulated Annealing Function
+
+Additional arguments of each function can be passed to the function **ConsReg**.
+
+
+The object *fit1* has the following information:
+
+Error metrics:
+
+```{r}
+fit1$metrics
+```
+
+Residual analysis
+
+```{r}
+forecast::gghistogram(fit1$residuals, add.normal = T, add.rug = T) + 
+  theme_minimal()
+```
+
+Let's put some constraints to the model:
+
+- All coefficients will be less than 1 and greater than -1
+- The coefficient of *x3* and *x3^2* must satisfied: (x3 + x3^2 > 0.01)
+- x4 < 0.2
+
+It can be easily incoporate in the function:
+
+```{r}
+fit2 = ConsReg(formula = y~x1+x2+x3+ I(x3^2) + x4, data = fake_data,
+            family = 'gaussian',
+            constraints = '(x3 + `I(x3^2)`) > .01, x4 < .2',
+            optimizer = 'mcmc',
+            LOWER = -1, UPPER = 1,
+            ini.pars.coef = c(-.4, .12, -.004, 0.1, 0.1, .15))
+```
+To put in the function is just:
+
+- LOWER: -1 means that the lowest value that can take any coefficient is -1
+- UPPER: 1 means that the highest value that can take any coefficient is 1
+- constraints: is an string with the different restrictions in the coefficients. Each constraint must be separated by a comma.
+- ini.pars.coef: finally, this parameter is used to set the initial values. Those values must fulfill all the restrictions
+
+Observe that now, all coefficient fulfill our constraints:
+
+```{r}
+rbind(coef(fit1), 
+      coef(fit2))
+```
+
+Also we can compare the errors to see that there is no much difference:
+
+```{r}
+rbind(fit1$metrics, 
+      fit2$metrics)
+```
+
+For predictions, it follows the same system as a glm or lm object:
+```{r}
+pred = data.frame(
+  fit1 = predict(fit1, newdata = fake_data[2:3,]), 
+  fit2 = predict(fit2, newdata = fake_data[2:3,])
+  )
+pred
+```
+
+Setting the parameter **component = T**, returns a matrix for the weight of each variable to the predictions  
+
+```{r}
+pr = predict(fit2, components = T, newdata = fake_data[5,])
+pr
+```
+
+
+## ConsRegArima
+
+As I said, it is in the time series models where the problem mentioned above arises.
+
+In this case, a function has been implemented that estimates a regression with the Arima errors. 
+
+This functions is quite similar to stats::arima function or in the forecast package, but the restrictions and constraints have been introduced. Also it can be write more friendly by using formula class. Let me show you.
+
+For this example, I will use another fake dataset
+
+```{r}
+data('series')
+```
+
+The objective function has the following trend:
+
+```{r}
+plot(series$y, t='l')
+```
+
+And the data set has 4 predictive variables:
+
+```{r}
+head(series)
+```
+
+We will estimate a first arma model (1, 1) with no regressors and no intercept
+
+```{r}
+fit_ts1 = ConsRegArima(y ~ -1, order = c(1, 1), data = series[1:60, ])
+fit_ts1$coefficients
+coef(arima(series$y[1:60], order = c(1, 0, 1), include.mean = F, method = 'CSS'))
+```
+
+Next I will add some regressors to the model:
+
+```{r, warning=FALSE}
+fit_ts2 = ConsRegArima(y ~ x1+x2+x3+x4, order = c(1, 1), data = series[1:60,])
+```
+
+Next I will add some constraints to the model:
+
+```{r, warning=FALSE}
+fit_ts3 = ConsRegArima(y ~ x1+x2+x3+x4, order = c(1, 1), data = series[1:60,], 
+                       LOWER = -1, UPPER = 1, 
+                       constraints = "x4 < x2", 
+                       ini.pars.coef = c(.9, .3, -.1, .3, -.3), 
+                       control = list(trace = 0) #  not show the trace of the optimizer 
+                       )
+fit_ts3$coefficients
+```
+
+To put in the function is just:
+
+- LOWER: -1 means that the lowest value that can take any coefficient is -1
+- UPPER: 1 means that the highest value that can take any coefficient is 1
+- constraints: is an string with the different restrictions in the coefficients. .
+- ini.pars.coef: finally, this parameter is used to set the initial values **only for the regression coefficient**. Those values must fulfill all the restrictions
+
+
+Next, we will change the optimizer. Let's try with a genetic algorithm:
+
+```{r}
+fit_ts4 = ConsRegArima(y ~ x1+x2+x3+x4, order = c(1, 1), data = series[1:60,],
+                       LOWER = -1, UPPER = 1,
+                       constraints = "x4 < x2",
+                       penalty = 10000,
+                       optimizer = 'GA', maxiter = 1000,
+                       monitor = NULL, #  not show the trace of the optimizer
+                       ini.pars.coef = c(.9, .2, 0, .3, -.6)
+                       )
+fit_ts4$coefficients
+```
+
+The restrictions are still fulfilled
+We can compare the errors of the 4 models:
+```{r}
+data.frame(
+  metrics = colnames(fit_ts1$metrics),
+  fit_ts1 = as.numeric(fit_ts1$metrics), 
+  fit_ts2 = as.numeric(fit_ts2$metrics), 
+  fit_ts3 = as.numeric(fit_ts3$metrics),
+  fit_ts4 = as.numeric(fit_ts4$metrics)
+  )
+```
+
+
+For predictions you will see that is very easy:
+
+```{r}
+pred = predict(fit_ts4, newdata = series[61:63, ], h=3, intervals = 90)
+pred$predict
+```
+
+
+And this object, you can plot to see the predictions as well as the fitted values:
+```{r, warning=FALSE}
+plot(pred) + theme_minimal()
+```
+
+In the **ConsRegArima** function, you can introduce the seasonal part P,Q, or in the formula, you can introduce lags in the predictor variables:
+
+```{r, warning=FALSE}
+fit_ts5 = ConsRegArima(y ~ x1+x3+
+                         shift(x3, 2) + # x2 from 2 periods above
+                         x4, 
+                       order = c(1, 1), data = series[1:60,], 
+                       seasonal = list(order = c(1, 0), period = 4), # seasonal component
+                       control = list(trace = 0)
+                       )
+```
+
+If you have used lags in the predictive variables, then, in the **predict** function, you must add the original data:
+
+```{r}
+pred = predict(fit_ts5, newdata = series[61:63,], origdata = series[1:60,])
+pred$predict
+```
+
+
+
+
+Finally, I have implemented a feature that I miss in many time series packages which is the possibility of backtesting.
+
+For a **ConsRegArima** object, I have implemented the "rolling" function that allows rolling-forecast with recalibration every $n$ periods, and projections to $h$ periods.
+
+And of course, very easy to carry out!
+
+```{r}
+ro = rolling(object = fit_ts3, used.sample = 50, 
+             refit = 4, h = 4, orig.data = series)
+```
+
+In this case, the arguments are:
+
+- object: fit_ts3
+- used.sample: sample to estimate the first refit. In this case we will use 1 to 50 observations
+- refit each 4 periods
+- predictions to 4rth period.
+
+The errors of the rolling are:
+
+
+And graphically:
+```{r}
+plot(ro) + theme_minimal()
+```
+
+We can compare that errors of 4-step-forecasts are greater than 1-step-forecast:
+
+```{r, digits = 3}
+ro$results
+```
+
+
