@@ -3,11 +3,11 @@ poisson.objective = function(theta, x, y, lower,
                               upper, penalty, residuals){
 
   ini_vars <- function(x,y,upper, lower){
-    coef_reg = coef(glm.fit(x = x, y = y, family = poisson()))
+    coef_reg = stats::coef(stats::glm.fit(x = x, y = y, family = stats::poisson()))
     coef_reg <- ifelse(data.table::between(coef_reg,
                                            upper = upper,
                                            lower = lower), coef_reg,
-                       runif(1, min = lower, max = upper))
+                       stats::runif(1, min = lower, max = upper))
     names(coef_reg) = c(colnames(x))
     return(coef_reg)
   }
@@ -45,7 +45,7 @@ poisson.objective = function(theta, x, y, lower,
     beta        <- theta[1:k] # vector of weights intialized with starting values
     expected_y  <- exp(x %*% beta)  # X is dimension (n x k) and beta is dimension (k x 1)
     N = nrow(x)
-    LL          <- - sum(dpois(y, lambda = expected_y, log = T)) +
+    LL          <- - sum(stats::dpois(y, lambda = expected_y, log = T)) +
       any(beta > UPPER[1:k]) * penalty +
       any(beta < LOWER[1:k]) * penalty + z * penalty
     return(LL)
@@ -102,7 +102,7 @@ poisson.objective = function(theta, x, y, lower,
 
   error_fun <- function(y, fitted){
     data.frame(
-      LogLik = sum(dpois(y, lambda = fitted, log = T))
+      LogLik = sum(stats::dpois(y, lambda = fitted, log = T))
     )
   }
 

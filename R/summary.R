@@ -1,5 +1,9 @@
 
 
+
+#' @export
+#' @rdname summary.ConsReg
+
 summary.ConsReg <- function(object, ...){
   family = object$family()
   VCOV <- family$vcov(coef = object$coefficients, x = object$x,
@@ -30,6 +34,8 @@ summary.ConsReg <- function(object, ...){
   res
 }
 
+#' @export
+#' @rdname print.summary.ConsReg
 print.summary.ConsReg <- function(x){
   cat("Call:\n")
   print(x$call)

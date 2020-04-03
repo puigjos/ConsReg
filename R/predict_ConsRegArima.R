@@ -32,7 +32,7 @@
 #'
 predict.ConsRegArima <- function(object,
                                  h = ifelse(is.null(newdata), 1, nrow(newdata)),
-                                 newdata = NULL, intervals = 90, origdata = NULL){
+                                 newdata = NULL, intervals = 90, origdata = NULL, ...){
 
   if(ncol(object$x) == 0){
     newdata = data.frame(rep(NA, h))
@@ -54,18 +54,18 @@ predict.ConsRegArima <- function(object,
   coef_arma = coef[(ncol(x)+1):length(coef)]
 
   if(is.null(origdata)){
-    TT = delete.response(terms(object$formula))
-    mf <- model.frame(formula=TT, data=newdata)
-    NEWx <- model.matrix(attr(mf, "terms"), data=mf)
+    TT = stats::delete.response(stats::terms(object$formula))
+    mf <- stats::model.frame(formula=TT, data=newdata)
+    NEWx <- stats::model.matrix(attr(mf, "terms"), data=mf)
   }else{
-    TT = stats::delete.response(terms(object$formula))
+    TT = stats::delete.response(stats::terms(object$formula))
     mf <- stats::model.frame(formula=TT, data=rbind(origdata, newdata))
-    NEWx <- tail(stats::model.matrix(attr(mf, "terms"), data=mf), h)
+    NEWx <- utils::tail(stats::model.matrix(attr(mf, "terms"), data=mf), h)
   }
 
 
 
-  predict_arima <- stats::KalmanForecast(n.ahead = h, mod = object$model)
+  predict_arima <- stats::KalmanForecast(n.ahead = h, mod = object$model, ...)
   predict = as.numeric(NEWx %*% coef_reg + predict_arima$pred)
 
 
@@ -75,7 +75,7 @@ predict.ConsRegArima <- function(object,
     Prediction = c(rep(NA, length(object$y)), predict)
   )
 
-  qq <- qnorm(0.5 * (1 + intervals/100))
+  qq <- stats::qnorm(0.5 * (1 + intervals/100))
   table$Fitted_Low = table$Fitted -  qq * sqrt(object$sigma2)
   table$Prediction_Low[(n+1):nrow(table)] = table$Prediction[(n+1):nrow(table)] -
     qq * sqrt(predict_arima$var * object$sigma2)
@@ -97,36 +97,37 @@ predict.ConsRegArima <- function(object,
 
 #' @rdname predict.ConsRegArima
 #' @export
-print.predict.ConsRegArima <- function(x){
+print.predict.ConsRegArima <- function(x, ...){
   print(x$table[is.na(x$table$Fitted),
                 c('Prediction', 'Prediction_High',
                   'Prediction_Low')],
-        digits = 3)
+        digits = 3, ...)
 }
 
 
 #' Plot the predictions
 #'
 #' @param x object of class predict.ConsRegArima
+#' @param ... Additional params passed to the function ggplot2::labs
 #'
 #' @return
 #' @export
 #' @rdname predict.ConsRegArima
 #' @examples
-plot.predict.ConsRegArima <- function(x){
+plot.predict.ConsRegArima <- function(x, ...){
   table = x$table
   table$XXX = 1:nrow(table)
 
-  ggplot2::ggplot(table, ggplot2::aes(x = XXX)) +
-    ggplot2::geom_line(ggplot2::aes(y = y, color = 'Real')) +
-    ggplot2::geom_line(ggplot2::aes(y = Fitted, color = 'Fitted')) +
-    ggplot2::geom_line(ggplot2::aes(y = Prediction, color = 'Prediction')) +
-    ggplot2::geom_ribbon(ggplot2::aes(ymin = Fitted_Low, ymax = Fitted_High,
+  ggplot2::ggplot(table, ggplot2::aes_(x = ~XXX)) +
+    ggplot2::geom_line(ggplot2::aes_(y = ~y, color = 'Real')) +
+    ggplot2::geom_line(ggplot2::aes_(y = ~Fitted, color = 'Fitted')) +
+    ggplot2::geom_line(ggplot2::aes_(y = ~Prediction, color = 'Prediction')) +
+    ggplot2::geom_ribbon(ggplot2::aes_(ymin = ~Fitted_Low, ymax = ~Fitted_High,
                              fill = 'Fitted'),
                 alpha = .2, show.legend = F) +
-    ggplot2::geom_ribbon(ggplot2::aes(ymin = Prediction_Low, ymax = Prediction_High,
+    ggplot2::geom_ribbon(ggplot2::aes_(ymin = ~Prediction_Low, ymax = ~Prediction_High,
                     fill = 'Prediction'),
                 alpha = .2,  show.legend = F) +
-    ggplot2::labs(x = '', y = '', color = '')
+    ggplot2::labs(x = '', y = '', color = '', ...)
 }
 

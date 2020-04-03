@@ -1,4 +1,5 @@
-
+#' @export
+#' @rdname summary.ConsRegArima
 summary.ConsRegArima <- function(object, ...){
 
   if(object$optimizer.name =='MCMCmetrop.opt'){
@@ -32,6 +33,8 @@ summary.ConsRegArima <- function(object, ...){
   res
 }
 
+#' @export
+#' @rdname print.summary.ConsRegArima
 print.summary.ConsRegArima <- function(x){
   cat("Call:\n")
   print(x$call)
