@@ -15,7 +15,7 @@
 #'
 #' @format data
 #' @examples
-#'
+#' data('fake_data')
 'fake_data'
 
 
@@ -25,5 +25,6 @@
 #'
 #' @format data
 #' @examples
+#' data('series')
 #'
 'sales'

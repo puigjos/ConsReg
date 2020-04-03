@@ -37,7 +37,7 @@ print.summary.ConsReg <- function(x){
   cat('Residuals:\n')
   print(summary(as.numeric(x$residuals)))
   cat('\n')
-  printCoefmat(x$coefficients, P.value=TRUE, has.Pvalue=TRUE,
+  stats::printCoefmat(x$coefficients, P.value=TRUE, has.Pvalue=TRUE,
                digits = 5)
   print(x$metrics)
   cat("\n")

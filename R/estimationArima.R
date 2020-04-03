@@ -49,7 +49,7 @@ estimationArima <- function(y, x, order, optimizer, seasonal,
     coef_reg <- ifelse(data.table::between(coef_reg,
                                            upper = bounds$upper[i],
                                            lower = bounds$lower[i]), coef_reg,
-                       runif(1, min = bounds$lower[i], max = bounds$upper[i]))
+                       stats::runif(1, min = bounds$lower[i], max = bounds$upper[i]))
   }
 
   if(!is.null(ini.pars.coef)){

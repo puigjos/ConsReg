@@ -12,6 +12,7 @@ sales
 Sales data set for time series models
 }
 \examples{
+data('series')
 
 }
 \keyword{datasets}

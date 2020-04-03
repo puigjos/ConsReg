@@ -2,15 +2,9 @@
 % Please edit documentation in R/roll_ConsRegArima.R
 \name{rolling}
 \alias{rolling}
-\alias{plot.roll.ConsRegArima}
-\alias{print.roll.ConsRegArima}
 \title{rolling: Back-test your model}
 \usage{
 rolling(object, used.sample, refit, h = 1, orig.data, ...)
-
-\method{print}{roll.ConsRegArima}(object)
-
-\method{plot}{roll.ConsRegArima}(object)
 }
 \arguments{
 \item{object}{ConsRegArima object}
@@ -26,8 +20,6 @@ If \code{refit}=0, then no refit is doing}
 \item{orig.data}{data original which was used to estimate the ConsRegArima \code{object}}
 
 \item{...}{Additional params for predict function}
-
-\item{object}{roll.ConsRegArima object}
 }
 \value{
 \item{results}{data.frame with Real, Prediction, Prediction_High,
@@ -36,7 +28,7 @@ If \code{refit}=0, then no refit is doing}
  \item{metrics}{Main metrics of the predictions}
 }
 \description{
-Function for creating rolling density forecast from ConsRegArima models with
+Function for creating rolling density forecast from \code{ConsRegArima} models with
 option for refitting every n periods.
 }
 \examples{
@@ -47,9 +39,6 @@ roll = rolling(fit1, used.sample = 40,
                refit = 5, orig.data = series, h=3)
 roll
 plot(roll)
-
-
-
 
 }
 \seealso{

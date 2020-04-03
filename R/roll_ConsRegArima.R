@@ -2,7 +2,7 @@
 
 #' rolling: Back-test your model
 #'
-#' Function for creating rolling density forecast from ConsRegArima models with
+#' Function for creating rolling density forecast from \code{ConsRegArima} models with
 #' option for refitting every n periods.
 #'
 #' @param object ConsRegArima object
@@ -23,7 +23,6 @@
 #' @export
 #'
 #' @seealso  \code{\link[ConsReg]{plot.roll.ConsRegArima}}
-#' @aliases plot.roll.ConsRegArima
 #'
 #' @examples
 #' data('series')
@@ -34,9 +33,7 @@
 #' roll
 #' plot(roll)
 #'
-#'
-#'
-#'
+
 rolling <- function(object, used.sample, refit, h = 1, orig.data,...){
 
   if(class(object) != "ConsRegArima"){
@@ -63,7 +60,7 @@ rolling <- function(object, used.sample, refit, h = 1, orig.data,...){
                                   data = orig.data[1:i,]))
     }
 
-    Predictions = predict(newModel, h = h, newdata = orig.data[(i+1):(i+h), ], ...)
+    Predictions = stats::predict(newModel, h = h, newdata = orig.data[(i+1):(i+h), ], ...)
     Predictions = data.table::last(Predictions$predict)
     final = data.frame(xx = i+h, Real = object$y[i + h],
                        Predictions, Fitted = object$fitted[i+h])
@@ -80,29 +77,26 @@ rolling <- function(object, used.sample, refit, h = 1, orig.data,...){
 
 
 #' @export
-#' @rdname rolling
-
-print.roll.ConsRegArima <- function(object){
-  print(object$metrics)
-  plot(object)
+print.roll.ConsRegArima <- function(x,...){
+  print(x$metrics)
 }
 
-#' Title
-#'plot an roll.ConsRegArima object
+#' Plot an roll object
+#' plot an roll.ConsRegArima object
 #'
-#' @param object roll.ConsRegArima object
+#' @param x roll.ConsRegArima object
+#' @param ... Additional params passed to ggplot2::labs function
 #'
 #' @return
 #' @export
-#' @rdname rolling
 #' @examples
-plot.roll.ConsRegArima <- function(object){
-  res = object$results
-  ggplot2::ggplot(res, ggplot2::aes(x = xx)) +
-    ggplot2::geom_line(ggplot2::aes(y = Real, color = 'Real')) +
-    ggplot2::geom_line(ggplot2::aes(y = Prediction, color  = 'Prediction'))+
-    ggplot2::geom_ribbon(ggplot2::aes(ymax = Prediction_High,
-                    ymin = Prediction_Low, fill = 'Prediction' ),
+plot.roll.ConsRegArima <- function(x,...){
+  res = x$results
+  ggplot2::ggplot(res, ggplot2::aes_(x = ~xx)) +
+    ggplot2::geom_line(ggplot2::aes_(y = ~Real, color = 'Real')) +
+    ggplot2::geom_line(ggplot2::aes_(y = ~Prediction, color  = 'Prediction'))+
+    ggplot2::geom_ribbon(ggplot2::aes_(ymax = ~Prediction_High,
+                    ymin = ~Prediction_Low, fill = 'Prediction' ),
                 alpha = .2, show.legend = F) +
-    ggplot2::labs(x = '', y='', color = '')
+    ggplot2::labs(x = '', y='', color = '', ...)
 }

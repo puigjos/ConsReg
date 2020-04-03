@@ -5,11 +5,11 @@ gaussian.objective = function(theta, x, y, lower,
                               upper, penalty, residuals){
 
   ini_vars <- function(x, y, upper, lower){
-    coef_reg = coef(glm.fit(x = x, y = y, family = gaussian()))
+    coef_reg = stats::coef(stats::glm.fit(x = x, y = y, family = stats::gaussian()))
     coef_reg <- ifelse(data.table::between(coef_reg,
                                            upper = upper,
                                            lower = lower), coef_reg,
-                       runif(1, min = lower, max = upper))
+                       stats::runif(1, min = lower, max = upper))
     names(coef_reg) = c(colnames(x))
     return(coef_reg)
   }

@@ -7,11 +7,12 @@
 \title{Predict function for ConsRegArima object}
 \usage{
 \method{predict}{ConsRegArima}(object, h = ifelse(is.null(newdata), 1,
-  nrow(newdata)), newdata = NULL, intervals = 90, origdata = NULL)
+  nrow(newdata)), newdata = NULL, intervals = 90, origdata = NULL,
+  ...)
 
-\method{print}{predict.ConsRegArima}(x)
+\method{print}{predict.ConsRegArima}(x, ...)
 
-\method{plot}{predict.ConsRegArima}(x)
+\method{plot}{predict.ConsRegArima}(x, ...)
 }
 \arguments{
 \item{object}{ConsRegArima object}
@@ -25,6 +26,8 @@ In case there is no regression part, this parameter could be set NULL}
 
 \item{origdata}{Original data (default NULL). Useful if lagged predictive
 variables are used in the formula}
+
+\item{...}{Additional params passed to the function ggplot2::labs}
 
 \item{x}{object of class predict.ConsRegArima}
 }

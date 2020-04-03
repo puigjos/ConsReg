@@ -12,6 +12,6 @@ fake_data
 Fake data to show gaussian model example
 }
 \examples{
-
+data('fake_data')
 }
 \keyword{datasets}

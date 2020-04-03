@@ -2,17 +2,17 @@
 
 
 #' @export
-#' @rdname ConsReg
+#' @rdname print.ConsReg
 
-print.ConsReg <- function (x, digits = max(3L, getOption("digits") - 3L),
-                           ...)
+print.ConsReg <- function (x, ...)
 {
   cat("\nCall:\n", paste(deparse(x$call), sep = "\n",
                          collapse = "\n"), "\n\n", sep = "")
-  if (length(coef(x))) {
+  if (length(stats::coef(x))) {
     cat("Coefficients:\n")
-    print.default(format(coef(x), digits = digits), print.gap = 2L,
-                  quote = FALSE)
+    digits = 3
+    print.default(format(stats::coef(x), digits = digits), print.gap = 2L,
+                  quote = FALSE, ...)
     x$metrics
   }
   else cat("No coefficients\n")
@@ -23,16 +23,16 @@ print.ConsReg <- function (x, digits = max(3L, getOption("digits") - 3L),
 
 
 #' @export
-#' @rdname ConsRegArima
-print.ConsRegArima <- function (x, digits = max(3L, getOption("digits") - 3L),
-                                ...)
+#' @rdname print.ConsRegArima
+print.ConsRegArima <- function(x, ...)
 {
+  digits = 3
   cat("\nCall:\n", paste(deparse(x$call), sep = "\n",
                          collapse = "\n"), "\n\n", sep = "")
-  if (length(coef(x))) {
+  if (length(stats::coef(x))) {
     cat("Coefficients:\n")
-    print.default(format(coef(x), digits = digits), print.gap = 2L,
-                  quote = FALSE)
+    print.default(format(stats::coef(x), digits = digits), print.gap = 2L,
+                  quote = FALSE, ...)
     x$metrics
     cat(
       "\nsigma^2 estimated as ", format(x$sigma2, digits = digits),

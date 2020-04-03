@@ -2,9 +2,9 @@
 summary.ConsRegArima <- function(object, ...){
 
   if(object$optimizer.name =='MCMCmetrop.opt'){
-    se = apply(object$optimizer, 2, sd, na.rm = T)/object$n.used
+    se = apply(object$optimizer, 2, stats::sd, na.rm = T)/object$n.used
   } else if(object$optimizer.name == 'mcmc.opt'){
-    se = apply(object$optimizer$pars, 2, sd, na.rm = T)/object$n.used
+    se = apply(object$optimizer$pars, 2, stats::sd, na.rm = T)/object$n.used
   }else if (object$optimizer.name == 'adaptMCMC.opt'){
     se = apply(object$optimizer$sample, 2, stats::sd, na.rm = T)/object$n.used
   }else{
@@ -16,7 +16,7 @@ summary.ConsRegArima <- function(object, ...){
 
   }
   tval <- object$coefficients / se
-  TAB <- cbind(Estimate = coef(object),
+  TAB <- cbind(Estimate = stats::coef(object),
                StdErr = se,
                t.value = tval,
                p.value = 2*stats::pt(-abs(tval), df = object$df))
@@ -39,7 +39,7 @@ print.summary.ConsRegArima <- function(x){
   cat('Residuals:\n')
   print(summary(as.numeric(x$residuals)))
   cat('\n')
-  printCoefmat(x$coefficients, P.value=TRUE, has.Pvalue=TRUE,
+  stats::printCoefmat(x$coefficients, P.value=TRUE, has.Pvalue=TRUE,
                digits = 5)
   print(x$metrics)
   cat("AIC=", format(round(x$aic, 2L)), sep = "")
